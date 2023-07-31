@@ -28,12 +28,13 @@ function wf = getWaveForms(gwfparams)
 % wf = getWaveForms(gwfparams);
 
 % Load .dat and KiloSort/Phy output
-fileName = fullfile(gwfparams.dataDir,gwfparams.fileName);           
-filenamestruct = dir(fileName);
-dataTypeNBytes = numel(typecast(cast(0, gwfparams.dataType), 'uint8')); % determine number of bytes per sample
-nSamp = filenamestruct.bytes/(gwfparams.nCh*dataTypeNBytes);  % Number of samples per channel
+% fileName = fullfile(gwfparams.dataDir,gwfparams.fileName);           
+% filenamestruct = dir(fileName);
+% dataTypeNBytes = numel(typecast(cast(0, gwfparams.dataType), 'uint8')); % determine number of bytes per sample
+% nSamp = filenamestruct.bytes/(gwfparams.nCh*dataTypeNBytes);  % Number of samples per channel
+
 wfNSamples = length(gwfparams.wfWin(1):gwfparams.wfWin(end));
-mmf = memmapfile(fileName, 'Format', {gwfparams.dataType, [gwfparams.nCh nSamp], 'x'});
+% mmf = memmapfile(fileName, 'Format', {gwfparams.dataType, [gwfparams.nCh nSamp], 'x'});
 chMap = readNPY(fullfile(gwfparams.dataDir, 'channel_map.npy'))+1;               % Order in which data was streamed to disk; must be 1-indexed for Matlab
 nChInMap = numel(chMap);
 
@@ -51,11 +52,13 @@ for curUnitInd=1:numUnits
     spikeTimesRP = curSpikeTimes(randperm(curUnitnSpikes));
     spikeTimeKeeps(curUnitInd,1:min([gwfparams.nWf curUnitnSpikes])) = sort(spikeTimesRP(1:min([gwfparams.nWf curUnitnSpikes])));
     for curSpikeTime = 1:min([gwfparams.nWf curUnitnSpikes])
-        tmpWf = mmf.Data.x(1:gwfparams.nCh,spikeTimeKeeps(curUnitInd,curSpikeTime)+gwfparams.wfWin(1):spikeTimeKeeps(curUnitInd,curSpikeTime)+gwfparams.wfWin(end));
+%         tmpWf = mmf.Data.x(1:gwfparams.nCh,spikeTimeKeeps(curUnitInd,curSpikeTime)+gwfparams.wfWin(1):spikeTimeKeeps(curUnitInd,curSpikeTime)+gwfparams.wfWin(end));
+        tmpWf = gwfparams.buff(1:gwfparams.nCh,spikeTimeKeeps(curUnitInd,curSpikeTime)+gwfparams.wfWin(1):spikeTimeKeeps(curUnitInd,curSpikeTime)+gwfparams.wfWin(end));
+
         waveForms(curUnitInd,curSpikeTime,:,:) = tmpWf(chMap,:);
     end
     waveFormsMean(curUnitInd,:,:) = squeeze(nanmean(waveForms(curUnitInd,:,:,:),2));
-    disp(['Completed ' int2str(curUnitInd) ' units of ' int2str(numUnits) '.']);
+%     disp(['Completed ' int2str(curUnitInd) ' units of ' int2str(numUnits) '.']);
 end
 
 
